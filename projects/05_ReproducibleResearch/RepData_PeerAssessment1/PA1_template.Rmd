@@ -113,11 +113,10 @@ data$weekday <- factor(weekdays(as.Date(data$date)))
 head(data)
 ```
 
-Which weekdays are the "lazy" days?
+Which weekdays are these?
 
 ```{r Weekdays with NAs, echo = TRUE}
 weekdays.with.na <- unique(data[data$date %in% dates.with.nas,]$weekday)
-weekdays.with.na
 ```
 
 Interval means for each weekday

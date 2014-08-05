@@ -1,5 +1,6 @@
 # Reproducible Research: Peer Assessment 1
 
+Daily walking activity data
 
 ## Loading and preprocessing the data
 
@@ -83,7 +84,6 @@ sum(is.na(data$steps))
 ## [1] 2304
 ```
 We see that all missing values are in "steps" column.  
-
 
 ## What is mean total number of steps taken per day?
 
@@ -267,17 +267,11 @@ head(data)
 ## 6    NA 2012-10-01       25 понедельник
 ```
 
-Which weekdays are the "lazy" days?
+Which weekdays are these?
 
 
 ```r
 weekdays.with.na <- unique(data[data$date %in% dates.with.nas,]$weekday)
-weekdays.with.na
-```
-
-```
-## [1] понедельник четверг     воскресенье пятница     суббота     среда      
-## 7 Levels: воскресенье вторник понедельник пятница среда ... четверг
 ```
 
 Interval means for each weekday
@@ -349,7 +343,7 @@ imputed$day=ifelse(as.POSIXlt(as.Date(imputed$date))$wday%%6==0, "weekend","week
 imputed$day=factor(imputed$day,levels=c("weekday","weekend"))
 stepsInterval2=aggregate(steps~interval+day,imputed,mean)
 library(lattice)
-xyplot(steps~interval|factor(day),data=stepsInterval2,aspect=1/2,type="l")
+xyplot(steps~interval|factor(day),data=stepsInterval2, aspect=1/2, type="l")
 ```
 
 ![plot of chunk Add weekend indicator](figure/Add weekend indicator.png) 
