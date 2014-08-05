@@ -1,0 +1,173 @@
+# Reproducible Research: Peer Assessment 1
+
+
+## Loading and preprocessing the data
+
+```{r, Load data, echo = TRUE}
+unzip("./activity.zip") 
+data <- read.csv("./activity.csv")
+```
+
+Let's see what's inside:
+```{r Look into data, echo = TRUE}
+head(data)
+tail(data)
+str(data)
+summary(data)
+```
+
+How many missing values are there?
+```{r Count NA-s, echo = TRUE}
+sum(is.na(data))
+sum(is.na(data$steps))
+```
+We see that all missing values are in "steps" column.  
+
+
+## What is mean total number of steps taken per day?
+
+Let's look at a simple a histogram.
+```{r Histogram, echo = TRUE}
+steps.per.day <- tapply(data$steps, data$date, sum)
+
+library(ggplot2)
+qplot(steps.per.day, geom="histogram", binwidth=diff(range(steps.per.day, na.rm=TRUE)) / 30) + geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day")
+```
+
+and at mean and median values:
+```{r Mean and median, echo = TRUE}
+mn <- mean(steps.per.day, na.rm=TRUE)
+md <- median(steps.per.day, na.rm=TRUE)
+mn
+md
+```
+
+The mean number of total steps per day is **`r mn`** and the median is **`r md`**.
+
+
+## What is the average daily activity pattern?
+
+Daily activity pattern averaged within each five minute interval across all days:
+
+```{r, fig.width=8, fig.height=4, echo = TRUE}
+library(plyr)
+# Split by intervals, find means
+int.means <- ddply(data, "interval", summarise, mean=mean(steps, na.rm=TRUE))
+ggplot(int.means, aes(interval, mean)) + geom_path() + labs(title="Average Nr of Steps in 5-minute Intervals", x="Interval", y="Average Nr of Steps")
+```
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r Most active interval, echo = TRUE}
+idx <- which.max(int.means$mean)
+int.means[idx,]
+```
+
+The interval with the maximum number of steps when averaged across all days in the dataset is **interval `r int.means[idx, "interval"]`**.
+
+## Imputing missing values
+
+Let's have a closer look at incomplete cases:
+
+```{r Incomplete cases, echo = TRUE}
+incomplete.cases <- sum(is.na(data$steps))
+incomplete.cases
+```
+There are **`r incomplete.cases`** incomplete cases in the dataset. Let's look athow they are distributed in time.
+
+```{r NA-s in time, echo = TRUE}
+interval.na <- ddply(data, "interval", summarise, na.count=sum(is.na(steps)))
+head(interval.na)
+tail(interval.na)
+```
+
+It seems that there are always 8 missing values. Let's check:
+
+```{r Calculate missing, echo = TRUE}
+all(interval.na$na.count == 8)
+```
+
+Indeed! 
+This probably means that there were 8 days with no data collected. 
+To check this:
+
+```{r NAs by day, echo = TRUE}
+date.na <- ddply(data, "date", summarise, na.count=sum(is.na(steps)))
+head(date.na)
+sum(date.na$na.count != 0)
+```
+
+Which dates were these?
+
+```{r Which days were these?, echo = TRUE}
+dates.with.nas <- unique(date.na$date[date.na$na.count != 0])
+as.vector(dates.with.nas)
+```
+
+We expect that activity patterns depend on weekday (less walking on weekends or vice versa)
+Let's impute mkissing days' values by mean values of that weekday.
+
+First, let's find wich day of week is the corresponding date.
+
+```{r Add weekday, echo = TRUE}
+data$weekday <- factor(weekdays(as.Date(data$date)))
+head(data)
+```
+
+Which weekdays are the "lazy" days?
+
+```{r Weekdays with NAs, echo = TRUE}
+weekdays.with.na <- unique(data[data$date %in% dates.with.nas,]$weekday)
+weekdays.with.na
+```
+
+Interval means for each weekday
+
+```{r Interval means for each weekday, echo = TRUE}
+int.d.means <- ddply(data, c("interval", "weekday"), summarise, steps=mean(steps, na.rm=TRUE))
+```
+
+Now let's question whether or not computing the mean by weekday is going to be
+any more informative than just substituting the overall mean across all days
+(this is a bit of foreshadowing for the next question):
+
+Fill in the missing values
+
+```{r Fill in the missing values, echo = TRUE}
+cmpl <- data[complete.cases(data),]
+incmpl <- data[!complete.cases(data),]
+merged <- merge(incmpl[, c("weekday", "interval", "date")], int.d.means, by=c("interval", "weekday"))
+imputed <- rbind(cmpl, merged)
+sum(!complete.cases(imputed)) # 0 
+```
+
+A histogram, mean and median of imputed data: 
+
+```{r A histogram, mean and median of imputed data, fig.width=8, fig.height=4, echo = TRUE}
+imp.steps.p.d <- tapply(imputed$steps, data$date, sum)
+qplot(imp.steps.p.d, geom="histogram", binwidth=diff(range(imp.steps.p.d, na.rm=TRUE)) / 30) +
+    geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day (for imputed data)")
+imp.mn <- mean(imp.steps.p.d, na.rm=TRUE)
+imp.md <- median(imp.steps.p.d, na.rm=TRUE)
+imp.mn
+imp.md
+```
+
+After imputation mean is **`r imp.mn`** and median is **`r imp.md`**.  
+These are both different from the values before imputation: `r mn`, `r md`, respectively.
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+Let's add a *weekend/weekday* boolean indicator to the data frame with imputed values:
+
+```{r Add weekend indicator, fig.width=8, echo = TRUE}
+imputed$day=ifelse(as.POSIXlt(as.Date(imputed$date))$wday%%6==0, "weekend","weekday")
+imputed$day=factor(imputed$day,levels=c("weekday","weekend"))
+stepsInterval2=aggregate(steps~interval+day,imputed,mean)
+library(lattice)
+xyplot(steps~interval|factor(day),data=stepsInterval2, aspect=1/2, type="l")
+```
+
+An obvious difference is that activity starts later on weekends.
+
+
