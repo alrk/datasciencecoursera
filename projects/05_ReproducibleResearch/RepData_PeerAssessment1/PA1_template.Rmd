@@ -1,5 +1,6 @@
 # Reproducible Research: Peer Assessment 1
 
+Daily walking activity data
 
 ## Loading and preprocessing the data
 
@@ -22,7 +23,6 @@ sum(is.na(data))
 sum(is.na(data$steps))
 ```
 We see that all missing values are in "steps" column.  
-
 
 ## What is mean total number of steps taken per day?
 
