@@ -31,7 +31,9 @@ Let's look at a simple a histogram.
 steps.per.day <- tapply(data$steps, data$date, sum)
 
 library(ggplot2)
-qplot(steps.per.day, geom="histogram", binwidth=diff(range(steps.per.day, na.rm=TRUE)) / 30) + geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day")
+qplot(steps.per.day, geom="histogram", binwidth=diff(range(steps.per.day, na.rm=TRUE)) / 30) + 
+		geom_rug(color="blue", alpha=0.7) + 
+		labs(x="Steps per day", title="Histogram of total steps per day")
 ```
 
 and at mean and median values:
@@ -53,7 +55,8 @@ Daily activity pattern averaged within each five minute interval across all days
 library(plyr)
 # Split by intervals, find means
 int.means <- ddply(data, "interval", summarise, mean=mean(steps, na.rm=TRUE))
-ggplot(int.means, aes(interval, mean)) + geom_path() + labs(title="Average Nr of Steps in 5-minute Intervals", x="Interval", y="Average Nr of Steps")
+ggplot(int.means, aes(interval, mean)) + geom_path() + 
+				labs(title="Average Nr of Steps in 5-minute Intervals", x="Interval", y="Average Nr of Steps")
 ```
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -104,7 +107,7 @@ as.vector(dates.with.nas)
 ```
 
 We expect that activity patterns depend on weekday (less walking on weekends or vice versa)
-Let's impute mkissing days' values by mean values of that weekday.
+Let's impute missing days' values by mean values of that weekday.
 
 First, let's find wich day of week is the corresponding date.
 
@@ -143,8 +146,9 @@ A histogram, mean and median of imputed data:
 
 ```{r A histogram, mean and median of imputed data, fig.width=8, fig.height=4, echo = TRUE}
 imp.steps.p.d <- tapply(imputed$steps, data$date, sum)
-qplot(imp.steps.p.d, geom="histogram", binwidth=diff(range(imp.steps.p.d, na.rm=TRUE)) / 30) +
-    geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day (for imputed data)")
+qplot(imp.steps.p.d, geom="histogram", binwidth=diff(range(imp.steps.p.d, na.rm=TRUE)) / 30) + 
+			geom_rug(color="blue", alpha=0.7) + 
+			labs(x="Steps per day", title="Histogram of total steps per day (for imputed data)")
 imp.mn <- mean(imp.steps.p.d, na.rm=TRUE)
 imp.md <- median(imp.steps.p.d, na.rm=TRUE)
 imp.mn

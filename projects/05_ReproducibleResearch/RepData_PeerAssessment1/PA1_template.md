@@ -93,7 +93,9 @@ Let's look at a simple a histogram.
 steps.per.day <- tapply(data$steps, data$date, sum)
 
 library(ggplot2)
-qplot(steps.per.day, geom="histogram", binwidth=diff(range(steps.per.day, na.rm=TRUE)) / 30) + geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day")
+qplot(steps.per.day, geom="histogram", binwidth=diff(range(steps.per.day, na.rm=TRUE)) / 30) + 
+		geom_rug(color="blue", alpha=0.7) + 
+		labs(x="Steps per day", title="Histogram of total steps per day")
 ```
 
 ![plot of chunk Histogram](figure/Histogram.png) 
@@ -130,7 +132,8 @@ Daily activity pattern averaged within each five minute interval across all days
 library(plyr)
 # Split by intervals, find means
 int.means <- ddply(data, "interval", summarise, mean=mean(steps, na.rm=TRUE))
-ggplot(int.means, aes(interval, mean)) + geom_path() + labs(title="Average Nr of Steps in 5-minute Intervals", x="Interval", y="Average Nr of Steps")
+ggplot(int.means, aes(interval, mean)) + geom_path() + 
+				labs(title="Average Nr of Steps in 5-minute Intervals", x="Interval", y="Average Nr of Steps")
 ```
 
 ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
@@ -247,7 +250,7 @@ as.vector(dates.with.nas)
 ```
 
 We expect that activity patterns depend on weekday (less walking on weekends or vice versa)
-Let's impute mkissing days' values by mean values of that weekday.
+Let's impute missing days' values by mean values of that weekday.
 
 First, let's find wich day of week is the corresponding date.
 
@@ -305,8 +308,9 @@ A histogram, mean and median of imputed data:
 
 ```r
 imp.steps.p.d <- tapply(imputed$steps, data$date, sum)
-qplot(imp.steps.p.d, geom="histogram", binwidth=diff(range(imp.steps.p.d, na.rm=TRUE)) / 30) +
-    geom_rug(color="blue", alpha=0.7) + labs(x="Steps per day", title="Histogram of total steps per day (for imputed data)")
+qplot(imp.steps.p.d, geom="histogram", binwidth=diff(range(imp.steps.p.d, na.rm=TRUE)) / 30) + 
+			geom_rug(color="blue", alpha=0.7) + 
+			labs(x="Steps per day", title="Histogram of total steps per day (for imputed data)")
 ```
 
 ![plot of chunk A histogram, mean and median of imputed data](figure/A histogram, mean and median of imputed data.png) 
